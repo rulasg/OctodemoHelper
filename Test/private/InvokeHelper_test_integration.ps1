@@ -1,10 +1,3 @@
-# Managing dependencies
-$MODULE_INVOKATION_TAG = "project-migration-module"
-$MODULE_INVOKATION_TAG_MOCK = "project-migration-module_Mock"
-$ROOT = $PSScriptRoot | Split-Path -Parent
-$MOCK_PATH = $ROOT | Join-Path -ChildPath 'private' -AdditionalChildPath 'mocks'
-
-
 function Set-InvokeCommandMock{
     [CmdletBinding()]
     param(
@@ -124,9 +117,6 @@ function MockCallThrow{
 
     Set-InvokeCommandMock -Alias $command -Command $mockCommand
 }
-
-
-Reset-InvokeCommandMock
 
 function Save-InvokeAsMockFile{
     param(
