@@ -6,9 +6,10 @@ $MODULE_PATH = $PSScriptRoot
 #Get public and private function definition files.
 $Public  = @( Get-ChildItem -Path $MODULE_PATH\public\*.ps1 -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $MODULE_PATH\private\*.ps1 -ErrorAction SilentlyContinue )
+$Tools   = @( Get-ChildItem -Path $MODULE_PATH\tools\*.ps1 -ErrorAction SilentlyContinue )
 
 #Dot source the files
-Foreach($import in @($Public + $Private))
+Foreach($import in @($Private + $Public + $Tools))
 {
     Try
     {
@@ -25,3 +26,10 @@ Foreach($import in @($Public + $Private))
 # Export Public functions ($Public.BaseName) for WIP modules
 # Set variables visible to the module and its functions only
 
+Export-ModuleMember -Function Test_*
+
+# Disable calling dependencies
+# This requires that all dependecies are called through mocks
+Reset-InvokeCommandMock
+
+$env:GH_PM_DEBUG = "silent"
