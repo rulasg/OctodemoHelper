@@ -7,8 +7,8 @@ if (! $LOADED_EARLYLOADED){
 
 
     # Load Invoke helper functions
-    . $(($PSScriptRoot | Join-Path -ChildPath SetMyInvokeCommandAlias.ps1 | Get-Item).FullName)
-    . $(($PSScriptRoot | Join-Path -ChildPath InvokeHelper_Globals.ps1 | Get-Item).FullName)
+    . $(($PSScriptRoot | Join-Path -ChildPath invokehelper -AdditionalChildPath SetMyInvokeCommandAlias.ps1 | Get-Item).FullName)
+    . $(($PSScriptRoot | Join-Path -ChildPath invokehelper -AdditionalChildPath InvokeHelper_Globals.ps1 | Get-Item).FullName)
 
 }
 
