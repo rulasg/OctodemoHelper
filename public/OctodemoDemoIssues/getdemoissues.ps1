@@ -13,14 +13,21 @@
         The repository name. Default is 'bootstrap'.
     
         .EXAMPLE
-        Get-DemoIssues -Org 'octodemo' -Repo 'bootstrap'
+        Get-OctodemoIssues -Org 'octodemo' -Repo 'bootstrap'
     #>
-    function Get-DemoIssues {
+    function Get-OctodemoIssues {
         [CmdletBinding()]
         param(
             [string]$Org = "octodemo",
             [string]$Repo = "bootstrap"
         )
-        $command = "gh search issues repo:$Org/$Repo author:@me is:open"
-        Invoke-Expression $command
-    } Export-ModuleMember -Function 'Get-DemoIssues'
+        $command = "gh search issues repo:$Org/$Repo author:@me is:open --json title,url"
+        $json = Invoke-Expression $command 
+
+        $json | Write-Verbose
+
+        $issues = $json | ConvertFrom-Json -Depth 10
+
+        return $issues
+
+    } Export-ModuleMember -Function 'Get-OctodemoIssues'
