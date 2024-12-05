@@ -21,7 +21,7 @@
             [string]$Org = "octodemo",
             [string]$Repo = "bootstrap"
         )
-        $command = "gh search issues repo:$Org/$Repo author:@me is:open --json title,repository,url"
+        $command = "gh search issues repo:$Org/$Repo author:@me is:open --json title,repository,url,labels"
         $json = Invoke-Expression $command 
 
         $json | Write-Verbose
@@ -30,14 +30,22 @@
 
         $ret = $issues | ForEach-Object {
 
+            $labels = $_.labels.name -join " , "
+
             $repoInfo = Get-OctodemoRepoFromIssue -url $_.url
+
+            if ($repoInfo){
+                $envRepo = "$($repoInfo.Owner)/$($repoInfo.Repo)"
+                $envRepoUrl = $repoInfo.Url
+            }
 
             [PSCustomObject]@{
                 Title = $_.title
                 Repository = $_.repository.nameWithOwner
                 Url = $_.url
-                Repo = "$($repoInfo.Owner)/$($repoInfo.Repo)"
-                RepoUrl = $repoInfo.Url
+                Repo = $envRepo
+                RepoUrl = $envRepoUrl
+                Labels = $labels
             }
         }
 
@@ -62,6 +70,11 @@ function Get-OctodemoRepoFromIssue{
     $lines = $comment -split "`n"
 
     $line = $lines | Select-String -Pattern "Demo repository"
+
+    #if line is null return null
+    if($null -eq $line){
+        return $null
+    }
 
     $ret = Get-RepoInfoFromString -inputString $line
 
