@@ -21,13 +21,24 @@
             [string]$Org = "octodemo",
             [string]$Repo = "bootstrap"
         )
-        $command = "gh search issues repo:$Org/$Repo author:@me is:open --json title,url"
+        $command = "gh search issues repo:$Org/$Repo author:@me is:open --json title,repository,url"
         $json = Invoke-Expression $command 
 
         $json | Write-Verbose
 
         $issues = $json | ConvertFrom-Json -Depth 10
 
-        return $issues
+        $ret = $issues | ForEach-Object {
+            [PSCustomObject]@{
+                Title = $_.title
+                Repository = $_.repository.nameWithOwner
+                Url = $_.url
+
+            }
+        }
+
+        $ret | Write-Verbose
+
+        return $ret
 
     } Export-ModuleMember -Function 'Get-OctodemoIssues'
