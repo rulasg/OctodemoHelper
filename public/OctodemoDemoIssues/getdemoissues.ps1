@@ -29,11 +29,15 @@
         $issues = $json | ConvertFrom-Json -Depth 10
 
         $ret = $issues | ForEach-Object {
+
+            $repoInfo = Get-OctodemoRepoFromIssue -url $_.url
+
             [PSCustomObject]@{
                 Title = $_.title
                 Repository = $_.repository.nameWithOwner
                 Url = $_.url
-
+                Repo = "$($repoInfo.Owner)/$($repoInfo.Repo)"
+                RepoUrl = $repoInfo.Url
             }
         }
 
@@ -42,3 +46,46 @@
         return $ret
 
     } Export-ModuleMember -Function 'Get-OctodemoIssues'
+
+function Get-OctodemoRepoFromIssue{
+    [CmdletBinding()]
+    param(
+        [string]$url
+    )
+    $json = gh issue view $url --comments --json comments
+    
+    $issue = $json | ConvertFrom-Json -Depth 10
+
+    # last comment
+    $comment = $issue.comments[-1].body
+
+    $lines = $comment -split "`n"
+
+    $line = $lines | Select-String -Pattern "Demo repository"
+
+    $ret = Get-RepoInfoFromString -inputString $line
+
+    return $ret
+}
+
+function Get-RepoInfoFromString{
+    [CmdletBinding()]
+    param(
+        [string]$inputString
+    )
+    # Extract the owner, repo, and url from the input string
+    $pattern = '\[(?<owner>[^\/]+)\/(?<repo>[^\]]+)\]\((?<url>[^)]+)\)'
+    $match = [regex]::Matches($inputString, $pattern)
+    if ($match.Count -gt 0) {
+        $owner = $match[0].Groups['owner'].Value
+        $repo = $match[0].Groups['repo'].Value
+        $url = $match[0].Groups['url'].Value
+        return [PSCustomObject]@{
+            Owner = $owner
+            Repo = $repo
+            Url = $url
+        }
+    } else {
+        Write-Error "No match found"
+    }
+} Export-ModuleMember -Function 'Get-RepoInfoFromString'
