@@ -103,7 +103,7 @@ function Get-OctodemoRepoFromIssue{
 
     $lines = $comment -split "`n"
 
-    $line = $lines | Select-String -Pattern "Demo repository"
+    $line = $lines | Select-String -Pattern " 👉🏻 Get started with your Demo here:"
 
     #if line is null return null
     if($null -eq $line){
@@ -120,21 +120,27 @@ function Get-RepoInfoFromString{
     param(
         [string]$inputString
     )
-    # Extract the owner, repo, and url from the input string
-    $pattern = '\[(?<owner>[^\/]+)\/(?<repo>[^\]]+)\]\((?<url>[^)]+)\)'
-    $match = [regex]::Matches($inputString, $pattern)
-    if ($match.Count -gt 0) {
-        $owner = $match[0].Groups['owner'].Value
-        $repo = $match[0].Groups['repo'].Value
-        $url = $match[0].Groups['url'].Value
-        return [PSCustomObject]@{
-            Owner = $owner
-            Repo = $repo
-            Url = $url
+    # Extract the URL, owner, and repo from a markdown link
+    $urlPattern = '\[.*?\]\((?<url>[^)]+)\)'
+    $urlMatch = [regex]::Match($inputString, $urlPattern)
+    
+    if ($urlMatch.Success) {
+        $url = $urlMatch.Groups['url'].Value
+        
+        # Extract owner and repo from GitHub URL
+        if ($url -match 'github\.com/(?<owner>[^/]+)/(?<repo>[^/]+)') {
+            $owner = $matches['owner']
+            $repo = $matches['repo']
+            
+            return [PSCustomObject]@{
+                Owner = $owner
+                Repo = $repo
+                Url = $url
+            }
         }
-    } else {
-        Write-Error "No match found"
     }
+    
+    Write-Error "No valid GitHub URL found"
 } Export-ModuleMember -Function 'Get-RepoInfoFromString'
 
 function Open-OctodemoMyIssues{
